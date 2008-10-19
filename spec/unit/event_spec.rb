@@ -32,7 +32,7 @@ end
 describe AASM::SupportingClasses::Event, 'when firing an event' do
   it 'should raise an AASM::InvalidTransition error if the transitions are empty' do
     obj = mock('object')
-    obj.stub!(:aasm_current_state)
+    obj.stub!(:current_state)
 
     event = AASM::SupportingClasses::Event.new(:event)
     lambda { event.fire(obj) }.should raise_error(AASM::InvalidTransition)
@@ -44,7 +44,7 @@ describe AASM::SupportingClasses::Event, 'when firing an event' do
     end
 
     obj = mock('object')
-    obj.stub!(:aasm_current_state).and_return(:open)
+    obj.stub!(:current_state).and_return(:open)
 
     event.fire(obj).should == :closed
   end
@@ -54,16 +54,16 @@ describe AASM::SupportingClasses::Event, 'when executing the success callback' d
   class ThisNameBetterNotBeInUse
     include AASM
 
-    aasm_state :initial
-    aasm_state :symbol
-    aasm_state :string
-    aasm_state :array
-    aasm_state :proc
+    state :initial
+    state :symbol
+    state :string
+    state :array
+    state :proc
   end
 
   it "should send the success callback if it's a symbol" do
     ThisNameBetterNotBeInUse.instance_eval {
-      aasm_event :with_symbol, :success => :symbol_success_callback do
+      event :with_symbol, :success => :symbol_success_callback do
         transitions :to => :symbol, :from => [:initial]
       end
     }
@@ -75,7 +75,7 @@ describe AASM::SupportingClasses::Event, 'when executing the success callback' d
 
   it "should send the success callback if it's a string" do
     ThisNameBetterNotBeInUse.instance_eval {
-      aasm_event :with_string, :success => 'string_success_callback' do
+      event :with_string, :success => 'string_success_callback' do
         transitions :to => :string, :from => [:initial]
       end
     }
@@ -87,7 +87,7 @@ describe AASM::SupportingClasses::Event, 'when executing the success callback' d
 
   it "should call each success callback if passed an array of strings and/or symbols" do
     ThisNameBetterNotBeInUse.instance_eval {
-      aasm_event :with_array, :success => [:success_callback1, 'success_callback2'] do
+      event :with_array, :success => [:success_callback1, 'success_callback2'] do
         transitions :to => :array, :from => [:initial]
       end
     }
@@ -100,7 +100,7 @@ describe AASM::SupportingClasses::Event, 'when executing the success callback' d
 
   it "should call the success callback if it's a proc" do
     ThisNameBetterNotBeInUse.instance_eval {
-      aasm_event :with_proc, :success => lambda { |obj| obj.proc_success_callback } do
+      event :with_proc, :success => lambda { |obj| obj.proc_success_callback } do
         transitions :to => :proc, :from => [:initial]
       end
     }

@@ -15,10 +15,13 @@ AASM has the following features:
 
 The latest AASM can currently be pulled from the git repository on github.
 
+Original is written by rubyist see
 * http://github.com/rubyist/aasm/tree/master
 
-A release and a gem are forthcoming.
+This fork is maintained by SHIMADA Koji
+- http://github.com/snoozer05/aasm/tree/master
 
+A release and a gem are forthcoming.
 
 
 == Installation
@@ -26,12 +29,12 @@ A release and a gem are forthcoming.
 === From GitHub hosted gems
 
   % sudo gem sources -a http://gems.github.com # (you only need to do this once)
-  % sudo gem install rubyist-aasm
+  % sudo gem install snoozer05-aasm
 
 === Building your own gems
 
   % rake gem
-  % sudo gem install pkg/aasm-2.0.1.gem
+  % sudo gem install pkg/aasm-2.0.2.gem
 
 
 == Simple Example
@@ -41,18 +44,18 @@ Here's a quick example highlighting some of the features.
   class Conversation
     include AASM
 
-    aasm_initial_state :new
+    initial_state :new
 
-    aasm_state :new
-    aasm_state :read
-    aasm_state :closed
+    state :new
+    state :read
+    state :closed
 
 
-    aasm_event :view do
+    event :view do
       transitions :to => :read, :from => [:new]
     end
 
-    aasm_event :close do
+    event :close do
       transitions :to => :closed, :from => [:read, :new]
     end
   end

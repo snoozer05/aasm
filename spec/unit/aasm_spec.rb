@@ -2,15 +2,15 @@ require File.join(File.dirname(__FILE__), '..', 'spec_helper')
 
 class Foo
   include AASM
-  aasm_initial_state :open
-  aasm_state :open, :exit => :exit
-  aasm_state :closed, :enter => :enter
+  initial_state :open
+  state :open, :exit => :exit
+  state :closed, :enter => :enter
 
-  aasm_event :close, :success => :success_callback do
+  event :close, :success => :success_callback do
     transitions :to => :closed, :from => [:open]
   end
 
-  aasm_event :null do
+  event :null do
     transitions :to => :closed, :from => [:open], :guard => :always_false
   end
 
@@ -30,10 +30,10 @@ end
 class Bar
   include AASM
 
-  aasm_state :read
-  aasm_state :ended
+  state :read
+  state :ended
 
-  aasm_event :foo do
+  event :foo do
     transitions :to => :ended, :from => [:read]
   end
 end
@@ -43,36 +43,36 @@ end
 
 
 describe AASM, '- class level definitions' do
-  it 'should define a class level aasm_initial_state() method on its including class' do
-    Foo.should respond_to(:aasm_initial_state)
+  it 'should define a class level initial_state() method on its including class' do
+    Foo.should respond_to(:initial_state)
   end
 
-  it 'should define a class level aasm_state() method on its including class' do
-    Foo.should respond_to(:aasm_state)
+  it 'should define a class level state() method on its including class' do
+    Foo.should respond_to(:state)
   end
 
-  it 'should define a class level aasm_event() method on its including class' do
-    Foo.should respond_to(:aasm_event)
+  it 'should define a class level event() method on its including class' do
+    Foo.should respond_to(:event)
   end
   
-  it 'should define a class level aasm_states() method on its including class' do
-    Foo.should respond_to(:aasm_states)
+  it 'should define a class level states() method on its including class' do
+    Foo.should respond_to(:states)
   end
   
-  it 'should define a class level aasm_states_for_select() method on its including class' do
-    Foo.should respond_to(:aasm_states_for_select)
+  it 'should define a class level states_for_select() method on its including class' do
+    Foo.should respond_to(:states_for_select)
   end
 
-  it 'should define a class level aasm_events() method on its including class' do
-    Foo.should respond_to(:aasm_events)
+  it 'should define a class level events() method on its including class' do
+    Foo.should respond_to(:events)
   end
 
 end
 
 
-describe AASM, '- aasm_states_for_select' do
+describe AASM, '- states_for_select' do
   it "should return a select friendly array of states in the form of [['Friendly name', 'state_name']]" do
-    Foo.aasm_states_for_select.should == [['Open', 'open'], ['Closed', 'closed']]
+    Foo.states_for_select.should == [['Open', 'open'], ['Closed', 'closed']]
   end
 end
 
@@ -97,7 +97,7 @@ describe AASM, '- initial states' do
   end
 
   it 'should set the initial state' do
-    @foo.aasm_current_state.should == :open
+    @foo.current_state.should == :open
   end
 
   it '#open? should be initially true' do
@@ -109,7 +109,7 @@ describe AASM, '- initial states' do
   end
 
   it 'should use the first state defined if no initial state is given' do
-    @bar.aasm_current_state.should == :read
+    @bar.current_state.should == :read
   end
 end
 
@@ -117,7 +117,7 @@ describe AASM, '- event firing with persistence' do
   it 'should fire the Event' do
     foo = Foo.new
 
-    Foo.aasm_events[:close].should_receive(:fire).with(foo)
+    Foo.events[:close].should_receive(:fire).with(foo)
     foo.close!
   end
 
@@ -125,7 +125,7 @@ describe AASM, '- event firing with persistence' do
     foo = Foo.new
     foo.close!
 
-    foo.aasm_current_state.should == :closed
+    foo.current_state.should == :closed
   end
 
   it 'should call the success callback if one was provided' do
@@ -136,48 +136,48 @@ describe AASM, '- event firing with persistence' do
     foo.close!
   end
 
-  it 'should attempt to persist if aasm_write_state is defined' do
+  it 'should attempt to persist if write_state is defined' do
     foo = Foo.new
     
-    def foo.aasm_write_state
+    def foo.write_state
     end
 
-    foo.should_receive(:aasm_write_state)
+    foo.should_receive(:write_state)
 
     foo.close!
   end
 
-  it 'should return true if aasm_write_state is defined and returns true' do
+  it 'should return true if write_state is defined and returns true' do
     foo = Foo.new
     
-    def foo.aasm_write_state(state)
+    def foo.write_state(state)
       true
     end
 
     foo.close!.should be_true
   end
 
-  it 'should return false if aasm_write_state is defined and returns false' do
+  it 'should return false if write_state is defined and returns false' do
     foo = Foo.new
     
-    def foo.aasm_write_state(state)
+    def foo.write_state(state)
       false
     end
 
     foo.close!.should be_false
   end
 
-  it "should not update the aasm_current_state if the write fails" do
+  it "should not update the current_state if the write fails" do
     foo = Foo.new
     
-    def foo.aasm_write_state
+    def foo.write_state
       false
     end
 
-    foo.should_receive(:aasm_write_state)
+    foo.should_receive(:write_state)
 
     foo.close!
-    foo.aasm_current_state.should == :open
+    foo.current_state.should == :open
   end
 end
 
@@ -185,7 +185,7 @@ describe AASM, '- event firing without persistence' do
   it 'should fire the Event' do
     foo = Foo.new
 
-    Foo.aasm_events[:close].should_receive(:fire).with(foo)
+    Foo.events[:close].should_receive(:fire).with(foo)
     foo.close
   end
 
@@ -193,107 +193,107 @@ describe AASM, '- event firing without persistence' do
     foo = Foo.new
     foo.close
 
-    foo.aasm_current_state.should == :closed
+    foo.current_state.should == :closed
   end
 
   it 'should attempt to persist if aasm_write_state is defined' do
     foo = Foo.new
     
-    def foo.aasm_write_state
+    def foo.write_state
     end
 
-    foo.should_receive(:aasm_write_state_without_persistence)
+    foo.should_receive(:write_state_without_persistence)
 
     foo.close
   end
 end
 
 describe AASM, '- persistence' do
-  it 'should read the state if it has not been set and aasm_read_state is defined' do
+  it 'should read the state if it has not been set and read_state is defined' do
     foo = Foo.new
-    def foo.aasm_read_state
+    def foo.read_state
     end
 
-    foo.should_receive(:aasm_read_state)
+    foo.should_receive(:read_state)
 
-    foo.aasm_current_state
+    foo.current_state
   end
 end
 
 describe AASM, '- getting events for a state' do
-  it '#aasm_events_for_current_state should use current state' do
+  it '#events_for_current_state should use current state' do
     foo = Foo.new
-    foo.should_receive(:aasm_current_state)
-    foo.aasm_events_for_current_state
+    foo.should_receive(:current_state)
+    foo.events_for_current_state
   end
 
-  it '#aasm_events_for_current_state should use aasm_events_for_state' do
+  it '#events_for_current_state should use events_for_state' do
     foo = Foo.new
-    foo.stub!(:aasm_current_state).and_return(:foo)
-    foo.should_receive(:aasm_events_for_state).with(:foo)
-    foo.aasm_events_for_current_state
+    foo.stub!(:current_state).and_return(:foo)
+    foo.should_receive(:events_for_state).with(:foo)
+    foo.events_for_current_state
   end
 end
 
 describe AASM, '- event callbacks' do
-  it 'should call aasm_event_fired if defined and successful for bang fire' do
+  it 'should call event_fired if defined and successful for bang fire' do
     foo = Foo.new
-    def foo.aasm_event_fired(from, to)
+    def foo.event_fired(from, to)
     end
 
-    foo.should_receive(:aasm_event_fired)
+    foo.should_receive(:event_fired)
 
     foo.close!
   end
 
-  it 'should not call aasm_event_fired if defined but persist fails for bang fire' do
+  it 'should not call event_fired if defined but persist fails for bang fire' do
     foo = Foo.new
-    def foo.aasm_event_fired(from, to)
+    def foo.event_fired(from, to)
     end
-    foo.stub!(:set_aasm_current_state_with_persistence).and_return(false)
+    foo.stub!(:set_current_state_with_persistence).and_return(false)
 
-    foo.should_not_receive(:aasm_event_fired)
+    foo.should_not_receive(:event_fired)
 
     foo.close!
   end
 
-  it 'should not call aasm_event_failed if defined and persist fails for bang fire' do
+  it 'should not call event_failed if defined and persist fails for bang fire' do
     foo = Foo.new
-    def foo.aasm_event_failed(from, to)
+    def foo.event_failed(from, to)
     end
-    foo.stub!(:set_aasm_current_state_with_persistence).and_return(false)
+    foo.stub!(:set_current_state_with_persistence).and_return(false)
 
-    foo.should_receive(:aasm_event_failed)
+    foo.should_receive(:event_failed)
 
     foo.close!
   end
 
-  it 'should call aasm_event_fired if defined and successful for non-bang fire' do
+  it 'should call event_fired if defined and successful for non-bang fire' do
     foo = Foo.new
-    def foo.aasm_event_fired(from, to)
+    def foo.event_fired(from, to)
     end
 
-    foo.should_receive(:aasm_event_fired)
+    foo.should_receive(:event_fired)
 
     foo.close
   end
 
-  it 'should call aasm_event_failed if defined and transition failed for bang fire' do
+  it 'should call event_failed if defined and transition failed for bang fire' do
     foo = Foo.new
-    def foo.aasm_event_failed(event)
+    def foo.event_failed(event)
     end
 
-    foo.should_receive(:aasm_event_failed)
+    foo.should_receive(:event_failed)
 
     foo.null!
   end
 
-  it 'should call aasm_event_failed if defined and transition failed for non-bang fire' do
+  it 'should call event_failed if defined and transition failed for non-bang fire' do
     foo = Foo.new
     def foo.aasm_event_failed(event)
     end
 
-    foo.should_receive(:aasm_event_failed)
+    foo.should_receive(:event_failed)
 
     foo.null
   end
@@ -318,28 +318,28 @@ end
 
 describe Baz do
   it "should have the same states as it's parent" do
-    Baz.aasm_states.should == Bar.aasm_states
+    Baz.states.should == Bar.states
   end
 
   it "should have the same events as it's parent" do
-    Baz.aasm_events.should == Bar.aasm_events
+    Baz.events.should == Bar.events
   end
 end
 
 
 class ChetanPatil
   include AASM
-  aasm_initial_state :sleeping
-  aasm_state :sleeping
-  aasm_state :showering
-  aasm_state :working
-  aasm_state :dating
+  initial_state :sleeping
+  state :sleeping
+  state :showering
+  state :working
+  state :dating
 
-  aasm_event :wakeup do
+  event :wakeup do
     transitions :from => :sleeping, :to => [:showering, :working]
   end
 
-  aasm_event :dress do
+  event :dress do
     transitions :from => :sleeping, :to => :working, :on_transition => :wear_clothes
     transitions :from => :showering, :to => [:working, :dating], :on_transition => Proc.new { |obj, *args| obj.wear_clothes(*args) }
   end
@@ -354,28 +354,28 @@ describe ChetanPatil do
     cp = ChetanPatil.new
     cp.wakeup! :showering
     
-    cp.aasm_current_state.should == :showering
+    cp.current_state.should == :showering
   end
 
   it 'should transition to specified next state (sleeping to working)' do
     cp = ChetanPatil.new
     cp.wakeup! :working
 
-    cp.aasm_current_state.should == :working
+    cp.current_state.should == :working
   end
 
   it 'should transition to default (first or showering) state' do
     cp = ChetanPatil.new
     cp.wakeup!
 
-    cp.aasm_current_state.should == :showering
+    cp.current_state.should == :showering
   end
 
   it 'should transition to default state when on_transition invoked' do
     cp = ChetanPatil.new
     cp.dress!(nil, 'purple', 'dressy')
 
-    cp.aasm_current_state.should == :working
+    cp.current_state.should == :working
   end
 
   it 'should call on_transition method with args' do

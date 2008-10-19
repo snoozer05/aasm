@@ -12,32 +12,32 @@ begin
     include AASM
 
     # Fake this column for testing purposes
-    attr_accessor :aasm_state
+    attr_accessor :state
 
-    aasm_state :open
-    aasm_state :closed
+    state :open
+    state :closed
 
-    aasm_event :view do
+    event :view do
       transitions :to => :read, :from => [:needs_attention]
     end
   end
 
   class Fi < ActiveRecord::Base
-    def aasm_read_state
+    def read_state
       "fi"
     end    
     include AASM
   end
 
   class Fo < ActiveRecord::Base
-    def aasm_write_state(state)
+    def write_state(state)
       "fo"
     end    
     include AASM
   end
 
   class Fum < ActiveRecord::Base
-    def aasm_write_state_without_persistence(state)
+    def write_state_without_persistence(state)
       "fum"
     end    
     include AASM
@@ -45,7 +45,7 @@ begin
 
   class June < ActiveRecord::Base
     include AASM
-    aasm_column :status
+    state_column :status
   end
   
   class Beaver < June
@@ -131,56 +131,56 @@ begin
     end
 
     it "should respond to aasm read state when not previously defined" do
-      FooBar.new.should respond_to(:aasm_read_state)
+      FooBar.new.should respond_to(:read_state)
     end
 
     it "should respond to aasm write state when not previously defined" do
-      FooBar.new.should respond_to(:aasm_write_state)
+      FooBar.new.should respond_to(:write_state)
     end
 
     it "should respond to aasm write state without persistence when not previously defined" do
-      FooBar.new.should respond_to(:aasm_write_state_without_persistence)
+      FooBar.new.should respond_to(:write_state_without_persistence)
     end
 
     it "should return the initial state when new and the aasm field is nil" do
-      FooBar.new.aasm_current_state.should == :open
+      FooBar.new.current_state.should == :open
     end
 
     it "should return the aasm column when new and the aasm field is not nil" do
       foo = FooBar.new
-      foo.aasm_state = "closed"
-      foo.aasm_current_state.should == :closed
+      foo.state = "closed"
+      foo.current_state.should == :closed
     end
 
     it "should return the aasm column when not new and the aasm_column is not nil" do
       foo = FooBar.new
       foo.stub!(:new_record?).and_return(false)
-      foo.aasm_state = "state"
-      foo.aasm_current_state.should == :state
+      foo.state = "state"
+      foo.current_state.should == :state
     end
 
     it "should allow a nil state" do
       foo = FooBar.new
       foo.stub!(:new_record?).and_return(false)
-      foo.aasm_state = nil
-      foo.aasm_current_state.should be_nil
+      foo.state = nil
+      foo.current_state.should be_nil
     end
 
-    it "should have aasm_ensure_initial_state" do
+    it "should have ensure_initial_state" do
       foo = FooBar.new
-      foo.send :aasm_ensure_initial_state
+      foo.send :ensure_initial_state
     end
 
-    it "should call aasm_ensure_initial_state on validation before create" do
+    it "should call ensure_initial_state on validation before create" do
       foo = FooBar.new
-      foo.should_receive(:aasm_ensure_initial_state).and_return(true)
+      foo.should_receive(:ensure_initial_state).and_return(true)
       foo.valid?
     end
 
-    it "should call aasm_ensure_initial_state on validation before create" do
+    it "should call ensure_initial_state on validation before create" do
       foo = FooBar.new
       foo.stub!(:new_record?).and_return(false)
-      foo.should_not_receive(:aasm_ensure_initial_state)
+      foo.should_not_receive(:ensure_initial_state)
       foo.valid?
     end
     
@@ -188,15 +188,15 @@ begin
 
   describe 'Beavers' do
     it "should have the same states as it's parent" do
-      Beaver.aasm_states.should == June.aasm_states
+      Beaver.states.should == June.states
     end
     
     it "should have the same events as it's parent" do
-      Beaver.aasm_events.should == June.aasm_events
+      Beaver.events.should == June.events
     end
     
     it "should have the same column as it's parent" do
-      Beaver.aasm_column.should == :status
+      Beaver.state_column.should == :status
     end
   end
   

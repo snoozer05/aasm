@@ -13,8 +13,8 @@ module AASM
       end
 
       def fire(obj, to_state=nil, *args)
-        transitions = @transitions.select { |t| t.from == obj.aasm_current_state }
-        raise AASM::InvalidTransition, "Event '#{name}' cannot transition from '#{obj.aasm_current_state}'" if transitions.size == 0
+        transitions = @transitions.select { |t| t.from == obj.current_state }
+        raise AASM::InvalidTransition, "Event '#{name}' cannot transition from '#{obj.current_state}'" if transitions.size == 0
 
         next_state = nil
         transitions.each do |transition|
